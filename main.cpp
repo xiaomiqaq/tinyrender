@@ -9,10 +9,12 @@ const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
 const int width = 800;
 const int height = 800; 
+vec3 light_dir(0, 0, -1);
+int* zbuffer = new int[width * height];
 //计算重心坐标
-glm::fvec3 barycentric(std::vector<vec2> pts, glm::vec2 p)
+glm::fvec3 barycentric(std::vector<vec3> pts, glm::vec2 p)
 {
-    //这是根据{u,v,1} 叉乘 {ABx,ACx,PAx} 得来的一步计算， 计算结果除以u.z即可得到真正的{u,v,1}
+    //这是根据{u,v,1} 点乘 {ABx,ACx,PAx} =0 点乘 {ABy,ACy,PAy} = 0 得来的一步计算，相当于计算一个叉积。 计算结果除以u.z即可得到真正的{u,v,1}
     glm::vec3 u = glm::cross(glm::vec3(pts[2].x - pts[0].x, pts[1].x - pts[0].x, pts[0].x - p.x), glm::vec3(pts[2].y - pts[0].y, pts[1].y - pts[0].y, pts[0].y - p.y));
     if (std::abs(u[2]) < 1) return glm::fvec3(-1, 1, 1);
     return glm::fvec3(1 - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
@@ -78,7 +80,7 @@ void triangle(glm::vec2 t0, glm::vec2 t1, glm::vec2 t2, TGAImage& image, TGAColo
     line(t2, t0, image, red);
 }
 
-void triangle(std::vector<vec2> pts, TGAImage& image,TGAColor color)
+void triangle(std::vector<vec3> pts, TGAImage& image,TGAColor color)
 {
     //找到包围三角形的包围盒
     glm::vec2 bboxmin(image.get_width() - 1, image.get_height() - 1);
@@ -88,48 +90,61 @@ void triangle(std::vector<vec2> pts, TGAImage& image,TGAColor color)
     {
         for (int j = 0; j < 2; j++)
         {
-            
             bboxmin[j] = std::max(0,(int) std::min(bboxmin[j], pts[i][j]));
             bboxmax[j] = std::min((int)screenBorder[j], (int)std::max(bboxmax[j], pts[i][j]));
         }
         //遍历包围盒中的点
-        glm::ivec2 p;
+        glm::vec3 p;
         for (p.x = bboxmin.x; p.x <= bboxmax.x ; p.x++)
         {
             for (p.y = bboxmin.y; p.y <= bboxmax.y; p.y++)
             {
                 glm::fvec3 bc = barycentric(pts, p);
                 if (bc.x < 0 || bc.y < 0 || bc.z < 0) continue;
-                image.set(p.x, p.y, color);
+                p.z = 0;
+                for (int i = 0; i < 3; i++) p.z += pts[i].z * bc[i];
+                if(zbuffer[int(p.x+p.y*width)] < p.z)
+                {
+                    zbuffer[int(p.x + p.y * width)] = p.z;
+                    image.set(p.x, p.y, color);
+                }
+                else
+                {
+                    int i = 0;
+                }
+
             }
         }
     }
 }
-int main(int argc, char** argv) {
-    vec3 light_dir(0, 0, -1);
-    light_dir = normalize(light_dir);
-    TGAImage image(width, height, TGAImage::RGB);
-    image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-    Model* model = new Model("../obj/african_head/african_head.obj");
+void DrawModel(Model* model,TGAImage& image)
+{
     for (int i = 0; i < model->nfaces(); i++)
     {
         std::vector<int> face = model->face(i);
-        std::vector<glm::vec2> screen_face;
+        std::vector<glm::vec3> screen_face;
         std::vector<glm::vec3> world_face;
         for (int j = 0; j < 3; j++)
         {
             glm::vec3 world_coord = model->vert(face[j]);
-            glm::vec2 screen_coord = glm::vec2((world_coord.x + 1.) * width / 2 , (world_coord.y + 1.) * height / 2 );
+            glm::vec3 screen_coord = glm::vec3((world_coord.x + 1.) * width / 2, (world_coord.y + 1.) * height / 2 , world_coord.z);
             screen_face.push_back(screen_coord);
             world_face.push_back(world_coord);
         }
-        vec3 normal = cross( (world_face[2] - world_face[0]) , (world_face[1] - world_face[0]));
+        vec3 normal = cross((world_face[2] - world_face[0]), (world_face[1] - world_face[0]));
         normal = normalize(normal);
         float intensity = dot(normal, light_dir);
-        if(intensity>0)
-            triangle(screen_face, image , TGAColor(255*intensity, 255 * intensity, 255 * intensity));
+        
+        triangle(screen_face, image, TGAColor(255 * intensity, 255 * intensity, 255 * intensity));
     }
+}
+int main(int argc, char** argv) {
    
-    image.write_tga_file("head.tga"); 
+    TGAImage image(width, height, TGAImage::RGB);
+    image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
+    Model* model = new Model("../obj/african_head/african_head.obj");
+    DrawModel(model,image);
+    image.write_tga_file("head2.tga"); 
+    delete model;
     return 0;
 }
