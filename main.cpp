@@ -7,17 +7,35 @@
 using namespace glm;
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
+const TGAColor gray = TGAColor(0, 0, 255, 100);
 const int width = 800;
 const int height = 800; 
 vec3 light_dir(0, 0, -1);
-int* zbuffer = new int[width * height];
+float* zbuffer = new float[width * height];
+int draw = 0;
+int cull = 0;
 //计算重心坐标
-glm::fvec3 barycentric(std::vector<vec3> pts, glm::vec2 p)
+glm::fvec3 barycentric(glm::vec3* tri_points, glm::vec3 p)
 {
     //这是根据{u,v,1} 点乘 {ABx,ACx,PAx} =0 点乘 {ABy,ACy,PAy} = 0 得来的一步计算，相当于计算一个叉积。 计算结果除以u.z即可得到真正的{u,v,1}
-    glm::vec3 u = glm::cross(glm::vec3(pts[2].x - pts[0].x, pts[1].x - pts[0].x, pts[0].x - p.x), glm::vec3(pts[2].y - pts[0].y, pts[1].y - pts[0].y, pts[0].y - p.y));
-    if (std::abs(u[2]) < 1) return glm::fvec3(-1, 1, 1);
-    return glm::fvec3(1 - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+    glm::vec3 u = glm::cross(glm::vec3(tri_points[2].x - tri_points[0].x, tri_points[1].x - tri_points[0].x, tri_points[0].x - p.x), glm::vec3(tri_points[2].y - tri_points[0].y, tri_points[1].y - tri_points[0].y, tri_points[0].y - p.y));
+    if (std::abs(u[2]) > 1e-2) 
+        return glm::fvec3(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+    return glm::fvec3(-1, 1, 1);
+}
+glm::vec3 barycentric(glm::vec3 A, glm::vec3 B, glm::vec3 C, glm::vec3 P)
+{
+    glm::vec3 s[2];
+    for (int i = 2; i--;)
+    {
+        s[i][0] = C[i] - A[i];
+        s[i][1] = B[i] - A[i];
+        s[i][2] = A[i] - P[i];
+    }
+    glm::vec3 u = glm::cross(s[0], s[1]);
+    if(std::abs(u[2]>1e-2)) 
+        return glm::fvec3(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+    return glm::fvec3(-1, 1, 1);
 }
 void line(glm::vec2 t0, glm::vec2 t1, TGAImage& image, TGAColor color) {
     int x0 = t0.x, y0 = t0.y, x1 = t1.x, y1 = t1.y;
@@ -80,7 +98,7 @@ void triangle(glm::vec2 t0, glm::vec2 t1, glm::vec2 t2, TGAImage& image, TGAColo
     line(t2, t0, image, red);
 }
 
-void triangle(std::vector<vec3> pts, TGAImage& image,TGAColor color)
+void triangle(glm::vec3 tri[], TGAImage& image, TGAColor color)
 {
     //找到包围三角形的包围盒
     glm::vec2 bboxmin(image.get_width() - 1, image.get_height() - 1);
@@ -90,52 +108,55 @@ void triangle(std::vector<vec3> pts, TGAImage& image,TGAColor color)
     {
         for (int j = 0; j < 2; j++)
         {
-            bboxmin[j] = std::max(0,(int) std::min(bboxmin[j], pts[i][j]));
-            bboxmax[j] = std::min((int)screenBorder[j], (int)std::max(bboxmax[j], pts[i][j]));
-        }
-        //遍历包围盒中的点
-        glm::vec3 p;
-        for (p.x = bboxmin.x; p.x <= bboxmax.x ; p.x++)
-        {
-            for (p.y = bboxmin.y; p.y <= bboxmax.y; p.y++)
-            {
-                glm::fvec3 bc = barycentric(pts, p);
-                if (bc.x < 0 || bc.y < 0 || bc.z < 0) continue;
-                p.z = 0;
-                for (int i = 0; i < 3; i++) p.z += pts[i].z * bc[i];
-                if(zbuffer[int(p.x+p.y*width)] < p.z)
-                {
-                    zbuffer[int(p.x + p.y * width)] = p.z;
-                    image.set(p.x, p.y, color);
-                }
-                else
-                {
-                    int i = 0;
-                }
-
-            }
+            bboxmin[j] = std::max(0,(int) std::min(bboxmin[j], tri[i][j]));
+            bboxmax[j] = std::min((int)screenBorder[j], (int)std::max(bboxmax[j], tri[i][j]));
         }
     }
+    //遍历包围盒中的点
+    glm::vec3 p;
+    for (p.x = bboxmin.x; p.x <= bboxmax.x; p.x++)
+    {
+        for (p.y = bboxmin.y; p.y <= bboxmax.y; p.y++)
+        {
+            glm::vec3 bc_screen = barycentric(tri[0], tri[1], tri[2], p);
+           // glm::vec3 bc_screen = barycentric(tri, p);
+            if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0) continue;
+            p.z = 0;
+            for (int i = 0; i < 3; i++) p.z += tri[i].z * bc_screen[i];
+            if (zbuffer[int(p.x + p.y * width)] < p.z)
+            {
+                zbuffer[int(p.x + p.y * width)] = p.z;
+                image.set(p.x, p.y, color);
+                draw++;
+            }
+            else
+            {
+                cull++;
+            }
+
+        }
+    }
+}
+
+glm::vec3 world2screen(glm::vec3 v)
+{
+    return glm::vec3(int((v.x + 1.) * width / 2. + .5), int((v.y + 1.) * height / 2. + .5), v.z);
 }
 void DrawModel(Model* model,TGAImage& image)
 {
     for (int i = 0; i < model->nfaces(); i++)
     {
         std::vector<int> face = model->face(i);
-        std::vector<glm::vec3> screen_face;
-        std::vector<glm::vec3> world_face;
-        for (int j = 0; j < 3; j++)
-        {
-            glm::vec3 world_coord = model->vert(face[j]);
-            glm::vec3 screen_coord = glm::vec3((world_coord.x + 1.) * width / 2, (world_coord.y + 1.) * height / 2 , world_coord.z);
-            screen_face.push_back(screen_coord);
-            world_face.push_back(world_coord);
-        }
-        vec3 normal = cross((world_face[2] - world_face[0]), (world_face[1] - world_face[0]));
+        glm::vec3 pts[3];
+        for (int j = 0; j < 3; j++) pts[j] = world2screen(model->vert(face[j]));
+       
+        vec3 normal = cross((pts[2] - pts[0]), (pts[1] - pts[0]));
         normal = normalize(normal);
+        light_dir = normalize(light_dir);
         float intensity = dot(normal, light_dir);
         
-        triangle(screen_face, image, TGAColor(255 * intensity, 255 * intensity, 255 * intensity));
+        //triangle(pts, image, TGAColor(255 * intensity,255* intensity,255 * intensity));
+        triangle(pts, image, TGAColor(rand() % 255, rand() % 255, rand() % 255, 255));
     }
 }
 int main(int argc, char** argv) {
@@ -144,7 +165,11 @@ int main(int argc, char** argv) {
     image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
     Model* model = new Model("../obj/african_head/african_head.obj");
     DrawModel(model,image);
-    image.write_tga_file("head2.tga"); 
+    image.write_tga_file("african_head.tga"); 
     delete model;
+
+    std::cout << "draw" << draw
+        <<"\n cull"<<cull<<std::endl;
+
     return 0;
 }
