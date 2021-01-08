@@ -4,6 +4,7 @@
 #include "geometry.h"
 #include "tgaimage.h"
 #include "glm/glm.hpp"
+#include "TinyRenderConfig.h"
 using namespace glm;
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
@@ -18,7 +19,9 @@ int cull = 0;
 glm::fvec3 barycentric(glm::vec3* tri_points, glm::vec3 p)
 {
     //这是根据{u,v,1} 点乘 {ABx,ACx,PAx} =0 点乘 {ABy,ACy,PAy} = 0 得来的一步计算，相当于计算一个叉积。 计算结果除以u.z即可得到真正的{u,v,1}
-    glm::vec3 u = glm::cross(glm::vec3(tri_points[2].x - tri_points[0].x, tri_points[1].x - tri_points[0].x, tri_points[0].x - p.x), glm::vec3(tri_points[2].y - tri_points[0].y, tri_points[1].y - tri_points[0].y, tri_points[0].y - p.y));
+    glm::vec3 vectorX(tri_points[2].x - tri_points[0].x, tri_points[1].x - tri_points[0].x, tri_points[0].x - p.x);
+    glm::vec3 vectorY(tri_points[2].y - tri_points[0].y, tri_points[1].y - tri_points[0].y, tri_points[0].y - p.y);
+    glm::vec3 u = glm::cross(vectorX,vectorY);
     if (std::abs(u[2]) > 1e-2) 
         return glm::fvec3(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
     return glm::fvec3(-1, 1, 1);
@@ -32,7 +35,9 @@ glm::vec3 barycentric(glm::vec3 A, glm::vec3 B, glm::vec3 C, glm::vec3 P)
         s[i][1] = B[i] - A[i];
         s[i][2] = A[i] - P[i];
     }
-    glm::vec3 u = glm::cross(s[0], s[1]);
+    glm::vec3 vectorX = glm::vec3(C.x - A.x, B.x - A.x, A.x - P.x);
+    glm::vec3 vectorY = glm::vec3(C.y - A.y, B.y - A.y, A.y - P.y);
+    glm::vec3 u = glm::cross(vectorX, vectorY);
     if(std::abs(u[2]>1e-2)) 
         return glm::fvec3(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
     return glm::fvec3(-1, 1, 1);
@@ -118,8 +123,8 @@ void triangle(glm::vec3 tri[], TGAImage& image, TGAColor color)
     {
         for (p.y = bboxmin.y; p.y <= bboxmax.y; p.y++)
         {
-            glm::vec3 bc_screen = barycentric(tri[0], tri[1], tri[2], p);
-           // glm::vec3 bc_screen = barycentric(tri, p);
+            //glm::vec3 bc_screen = barycentric(tri[0], tri[1], tri[2], p);
+            glm::vec3 bc_screen = barycentric(tri, p);
             if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0) continue;
             p.z = 0;
             for (int i = 0; i < 3; i++) p.z += tri[i].z * bc_screen[i];
@@ -153,23 +158,25 @@ void DrawModel(Model* model,TGAImage& image)
         vec3 normal = cross((pts[2] - pts[0]), (pts[1] - pts[0]));
         normal = normalize(normal);
         light_dir = normalize(light_dir);
-        float intensity = dot(normal, light_dir);
+        float intensity = dot(normal, light_dir) ;
         
-        //triangle(pts, image, TGAColor(255 * intensity,255* intensity,255 * intensity));
+        
         triangle(pts, image, TGAColor(rand() % 255, rand() % 255, rand() % 255, 255));
     }
 }
-int main(int argc, char** argv) {
-   
-    TGAImage image(width, height, TGAImage::RGB);
-    image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-    Model* model = new Model("../obj/african_head/african_head.obj");
-    DrawModel(model,image);
-    image.write_tga_file("african_head.tga"); 
-    delete model;
+//int main(int argc, char** argv) {
+//   
+//    //TGAImage image(width, height, TGAImage::RGB);
+//    //image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
+//    //Model* model = new Model("../obj/african_head/african_head.obj");
+//    //DrawModel(model,image);
+//    //image.write_tga_file("african_head.tga"); 
+//    //delete model;
+//
+//    //std::cout << "draw" << draw
+//    //    <<"\n cull"<<cull<<std::endl;
+// 
+//    return 0;
+//}
 
-    std::cout << "draw" << draw
-        <<"\n cull"<<cull<<std::endl;
 
-    return 0;
-}
