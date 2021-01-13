@@ -1,10 +1,12 @@
+
 #ifndef __IMAGE_H__
 #define __IMAGE_H__
 
 #include <cstdint>
 #include <fstream>
 #include <vector>
-
+#include <algorithm>
+#include <string>
 #pragma pack(push,1)
 struct TGA_Header {
     std::uint8_t  idlength{};

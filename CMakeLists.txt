@@ -5,13 +5,8 @@ project (tinyrenderer)
 set (TINYRENDER_VERSION_MAJOR 1)
 set (TINYRENDER_VERSION_MAJOR 0)
 #添加配置文件
-configure_file (
-  "${PROJECT_SOURCE_DIR}/TinyRenderConfig.h.in"
-  "${PROJECT_BINARY_DIR}/TinyRenderConfig.h"
-  )
- 
-#配置文件会写入BINARY_DIR中，添加到include的搜索路径中
-include_directories("${PROJECT_BINARY_DIR}")
+
+
 
 # 添加头文件的查找目录  
 include_directories(${PROJECT_SOURCE_DIR}/include)  

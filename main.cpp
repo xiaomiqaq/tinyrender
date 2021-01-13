@@ -4,7 +4,10 @@
 #include "geometry.h"
 #include "tgaimage.h"
 #include "glm/glm.hpp"
-#include "TinyRenderConfig.h"
+#include "glm/mat4x4.hpp"
+#include <glm/ext/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale
+#include <glm/ext/matrix_clip_space.hpp> // glm::perspective
+#include <glm/ext/scalar_constants.hpp> // glm::pi
 using namespace glm;
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
@@ -15,6 +18,9 @@ vec3 light_dir(0, 0, -1);
 float* zbuffer = new float[width * height];
 int draw = 0;
 int cull = 0;
+glm::mat4 projection_mat = glm::mat4(1.0f);
+glm::mat4 view_mat = glm::mat4(1.0f);
+
 //计算重心坐标
 glm::fvec3 barycentric(glm::vec3* tri_points, glm::vec3 p)
 {
@@ -143,9 +149,22 @@ void triangle(glm::vec3 tri[], TGAImage& image, TGAColor color)
     }
 }
 
-glm::vec3 world2screen(glm::vec3 v)
+glm::mat4 lookAt(glm::vec3 eye, glm::vec3 center, glm::vec3 up)
 {
-    return glm::vec3(int((v.x + 1.) * width / 2. + .5), int((v.y + 1.) * height / 2. + .5), v.z);
+	glm::mat4 camera(1.0f);
+	glm::vec3 z_aix = normalize(eye - center);
+	glm::vec3 x_aix = normalize(glm::cross(z_aix, up));
+	glm::vec3 y_aix = normalize(glm::cross(z_aix, x_aix));
+	for(int i=0;i<3;i++)
+		camera[i] = glm::vec4(x_aix[0], y_aix[i], z_aix[i], center[i]);
+	return camera;
+
+}
+glm::vec3 world2screen(glm::vec3& v)
+{
+	; glm::vec3 perspective_pos = projection_mat  * view_mat * glm::vec4(v, 1.0f);
+    glm::vec3 screen_pos=glm::vec3(int((perspective_pos.x + 1.) * width / 2. + .5), int((perspective_pos.y + 1.) * height / 2. + .5), perspective_pos.z);
+	return screen_pos;
 }
 void DrawModel(Model* model,TGAImage& image)
 {
@@ -164,19 +183,21 @@ void DrawModel(Model* model,TGAImage& image)
         triangle(pts, image, TGAColor(rand() % 255, rand() % 255, rand() % 255, 255));
     }
 }
-//int main(int argc, char** argv) {
-//   
-//    //TGAImage image(width, height, TGAImage::RGB);
-//    //image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-//    //Model* model = new Model("../obj/african_head/african_head.obj");
-//    //DrawModel(model,image);
-//    //image.write_tga_file("african_head.tga"); 
-//    //delete model;
-//
-//    //std::cout << "draw" << draw
-//    //    <<"\n cull"<<cull<<std::endl;
-// 
-//    return 0;
-//}
+int main(int argc, char** argv) {
+	view_mat = lookAt(glm::vec3(5, 5, 5), glm::vec3(0, 1, 0), glm::vec3(0, 0, -2));
+
+	projection_mat[2].w = -(1 / 10);
+    TGAImage image(width, height, TGAImage::RGB);
+    image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
+    Model* model = new Model("../obj/african_head/african_head.obj");
+    DrawModel(model,image);
+    image.write_tga_file("../output/african_head_per3.tga"); 
+    delete model;
+
+    std::cout << "draw " << draw
+        <<"\ncull "<<cull<<std::endl;
+ 
+    return 0;
+}
 
 

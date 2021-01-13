@@ -114,7 +114,7 @@ bool TGAImage::write_tga_file(const std::string filename, const bool vflip, cons
     std::ofstream out;
     out.open (filename, std::ios::binary);
     if (!out.is_open()) {
-        std::cerr << "can't open file " << filename << "\n";
+        std::cerr << "can't open file " << filename.c_str() << "\n";
         out.close();
         return false;
     }

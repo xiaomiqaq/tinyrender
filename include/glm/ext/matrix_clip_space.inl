@@ -528,7 +528,7 @@ namespace glm
 #		endif
 	}
 
-	// Infinite projection matrix: http://www.terathon.com/gdc07_lengyel.pdf
+	// Infinite projection_mat matrix: http://www.terathon.com/gdc07_lengyel.pdf
 	template<typename T>
 	GLM_FUNC_QUALIFIER mat<4, 4, T, defaultp> tweakedInfinitePerspective(T fovy, T aspect, T zNear, T ep)
 	{

@@ -332,7 +332,7 @@ namespace glm
 	GLM_FUNC_DECL mat<4, 4, T, defaultp> perspective(
 		T fovy, T aspect, T near, T far);
 
-	/// Builds a perspective projection matrix based on a field of view using right-handed coordinates.
+	/// Builds a perspective projection_mat matrix based on a field of view using right-handed coordinates.
 	/// The near and far clip planes correspond to z normalized device coordinates of 0 and +1 respectively. (Direct3D clip volume definition)
 	///
 	/// @param fov Expressed in radians.
@@ -346,7 +346,7 @@ namespace glm
 	GLM_FUNC_DECL mat<4, 4, T, defaultp> perspectiveFovRH_ZO(
 		T fov, T width, T height, T near, T far);
 
-	/// Builds a perspective projection matrix based on a field of view using right-handed coordinates.
+	/// Builds a perspective projection_mat matrix based on a field of view using right-handed coordinates.
 	/// The near and far clip planes correspond to z normalized device coordinates of -1 and +1 respectively. (OpenGL clip volume definition)
 	///
 	/// @param fov Expressed in radians.
@@ -360,7 +360,7 @@ namespace glm
 	GLM_FUNC_DECL mat<4, 4, T, defaultp> perspectiveFovRH_NO(
 		T fov, T width, T height, T near, T far);
 
-	/// Builds a perspective projection matrix based on a field of view using left-handed coordinates.
+	/// Builds a perspective projection_mat matrix based on a field of view using left-handed coordinates.
 	/// The near and far clip planes correspond to z normalized device coordinates of 0 and +1 respectively. (Direct3D clip volume definition)
 	///
 	/// @param fov Expressed in radians.
@@ -374,7 +374,7 @@ namespace glm
 	GLM_FUNC_DECL mat<4, 4, T, defaultp> perspectiveFovLH_ZO(
 		T fov, T width, T height, T near, T far);
 
-	/// Builds a perspective projection matrix based on a field of view using left-handed coordinates.
+	/// Builds a perspective projection_mat matrix based on a field of view using left-handed coordinates.
 	/// The near and far clip planes correspond to z normalized device coordinates of -1 and +1 respectively. (OpenGL clip volume definition)
 	///
 	/// @param fov Expressed in radians.
@@ -388,7 +388,7 @@ namespace glm
 	GLM_FUNC_DECL mat<4, 4, T, defaultp> perspectiveFovLH_NO(
 		T fov, T width, T height, T near, T far);
 
-	/// Builds a perspective projection matrix based on a field of view using left-handed coordinates if GLM_FORCE_LEFT_HANDED if defined or right-handed coordinates otherwise.
+	/// Builds a perspective projection_mat matrix based on a field of view using left-handed coordinates if GLM_FORCE_LEFT_HANDED if defined or right-handed coordinates otherwise.
 	/// The near and far clip planes correspond to z normalized device coordinates of 0 and +1 respectively. (Direct3D clip volume definition)
 	///
 	/// @param fov Expressed in radians.
@@ -402,7 +402,7 @@ namespace glm
 	GLM_FUNC_DECL mat<4, 4, T, defaultp> perspectiveFovZO(
 		T fov, T width, T height, T near, T far);
 
-	/// Builds a perspective projection matrix based on a field of view using left-handed coordinates if GLM_FORCE_LEFT_HANDED if defined or right-handed coordinates otherwise.
+	/// Builds a perspective projection_mat matrix based on a field of view using left-handed coordinates if GLM_FORCE_LEFT_HANDED if defined or right-handed coordinates otherwise.
 	/// The near and far clip planes correspond to z normalized device coordinates of -1 and +1 respectively. (OpenGL clip volume definition)
 	///
 	/// @param fov Expressed in radians.
@@ -416,7 +416,7 @@ namespace glm
 	GLM_FUNC_DECL mat<4, 4, T, defaultp> perspectiveFovNO(
 		T fov, T width, T height, T near, T far);
 
-	/// Builds a right handed perspective projection matrix based on a field of view.
+	/// Builds a right handed perspective projection_mat matrix based on a field of view.
 	/// If GLM_FORCE_DEPTH_ZERO_TO_ONE is defined, the near and far clip planes correspond to z normalized device coordinates of 0 and +1 respectively. (Direct3D clip volume definition)
 	/// Otherwise, the near and far clip planes correspond to z normalized device coordinates of -1 and +1 respectively. (OpenGL clip volume definition)
 	///
@@ -431,7 +431,7 @@ namespace glm
 	GLM_FUNC_DECL mat<4, 4, T, defaultp> perspectiveFovRH(
 		T fov, T width, T height, T near, T far);
 
-	/// Builds a left handed perspective projection matrix based on a field of view.
+	/// Builds a left handed perspective projection_mat matrix based on a field of view.
 	/// If GLM_FORCE_DEPTH_ZERO_TO_ONE is defined, the near and far clip planes correspond to z normalized device coordinates of 0 and +1 respectively. (Direct3D clip volume definition)
 	/// Otherwise, the near and far clip planes correspond to z normalized device coordinates of -1 and +1 respectively. (OpenGL clip volume definition)
 	///
@@ -446,7 +446,7 @@ namespace glm
 	GLM_FUNC_DECL mat<4, 4, T, defaultp> perspectiveFovLH(
 		T fov, T width, T height, T near, T far);
 
-	/// Builds a perspective projection matrix based on a field of view and the default handedness and default near and far clip planes definition.
+	/// Builds a perspective projection_mat matrix based on a field of view and the default handedness and default near and far clip planes definition.
 	/// To change default handedness use GLM_FORCE_LEFT_HANDED. To change default near and far clip planes definition use GLM_FORCE_DEPTH_ZERO_TO_ONE.
 	///
 	/// @param fov Expressed in radians.
