@@ -45,6 +45,12 @@ struct TGAColor {
         for (int i=0; i<4; i++) res.bgra[i] = bgra[i]*clamped;
         return res;
     }
+	TGAColor operator +(const TGAColor& c2)
+	{
+		TGAColor res(0, 0, 0, 0);
+		for (int i = 0; i < 4; i++) res.bgra[i] = std::min(this->bgra[i] + c2.bgra[i], 255);
+		return res;
+	}
 };
 
 class TGAImage {
