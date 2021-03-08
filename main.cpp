@@ -7,6 +7,8 @@
 #include "myGL.h"
 #include "Shader.h"
 using namespace glm;
+const std::string OutputPath = "../output/tangentuv2.tga";
+
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
 const TGAColor gray = TGAColor(0, 0, 255, 100);
@@ -179,67 +181,108 @@ void triangle(glm::vec3 vertexs[], vec2 uv[] , TGAImage& image , Model* model)
 }
 
 
-class GouraudShader : public IShader {
-	
-private:
-	glm::mat4 View = glm::mat4(1.0f);
-	glm::mat4 Projection = glm::mat4(1.0f);
-	glm::mat4 ViewPort = glm::mat4(1.0f);
+//class GouraudShader : public IShader {
+//	
+//private:
+//	glm::vec3 v2f_pos[3];  //model space
+//	glm::vec2 v2f_uv[3];
+//	TGAColor ambient = TGAColor(5, 5, 5, 255);
+//	TGAColor specColor = TGAColor(100, 100, 100, 1);
+//public:
+//	glm::vec4 ndc_pos[3];
+//	virtual glm::vec3 vertex(int iface, int nthvert) 
+//	{
+//		v2f_uv[nthvert] = model->uv(iface, nthvert);
+//		v2f_pos[nthvert] = model->vert(iface, nthvert);
+//		glm::vec4 gl_Vertex = vec4(model->vert(iface, nthvert),1.0f);
+//		ndc_pos[nthvert] = Projection * View * gl_Vertex;
+//		ndc_pos[nthvert].x = ndc_pos[nthvert].x / ndc_pos[nthvert].w;
+//		ndc_pos[nthvert].y = ndc_pos[nthvert].y / ndc_pos[nthvert].w;
+//		return ViewPort * ndc_pos[nthvert]; // 屏幕空间坐标
+//	}
+//
+//	virtual bool fragment(vec3 bar, TGAColor &color) 
+//	{
+//		vec2 uv(0.0);
+//		vec3 pos(0.0);
+//		for (int i = 0; i < 3; i++) {
+//			uv += v2f_uv[i] * bar[i];
+//			pos += v2f_pos[i] * bar[i];
+//		}
+//		vec3 worldViewDir = normalize(eye - center);
+//		vec3 worldNormal = normalize(vec4(model->normal(uv), 0.0f)); 
+//		vec3 worldLightDir = normalize(inverse(Projection*View) * vec4(light_dir, 0.0f));
+//		vec3 worldReflect = 2.0f*worldNormal*dot(worldNormal, worldLightDir) - worldLightDir;
+//		float diff = dot(worldNormal, worldLightDir);
+//		float spec = pow(std::max(dot(worldReflect,worldViewDir),0.0f), model->specular(uv));
+//		color = ambient + model->diffuse(uv) * diff + specColor * spec * 60.0;
+//		return true;                              
+//	}
+//
+//};
 
+class GouraudShader : public IShader {
+
+private:
 	glm::vec3 v2f_pos[3];
+	glm::vec3 v2f_normal[3];
 	glm::vec2 v2f_uv[3];
+	glm::vec3 ndc_ver[3];
 	TGAColor ambient = TGAColor(5, 5, 5, 255);
 	TGAColor specColor = TGAColor(100, 100, 100, 1);
 public:
-	void lookAt(glm::vec3 eye, glm::vec3 target, glm::vec3 up)
-	{
-		glm::vec3 z_aix = normalize(eye - target);
-		glm::vec3 x_aix = normalize(glm::cross(up, z_aix));  //叉积的顺序会影响轴的朝向
-		glm::vec3 y_aix = normalize(glm::cross(z_aix, x_aix));
-		View[0] = vec4(x_aix, 0.0f);
-		View[1] = vec4(y_aix, 0.0f);
-		View[2] = vec4(z_aix, 0.0f);
-		View = inverse(View);
-	}
-	void projection(float coeff)
-	{
-		Projection[2].w = -(1.0 / coeff);
-	}
-	void viewPort(int width, int height, int depth)
-	{
-		ViewPort[0] = vec4(width / 2.0f, 0.0f, 0.0f, 0.0f);
-		ViewPort[1] = vec4(0.0f, height / 2.0f, 0.0f, 0.0f);
-		ViewPort[2] = vec4(0.0f, 0.0f, depth / 2.0f, 0.0f);
-		ViewPort[3] = vec4(width / 2.0f, height / 2.0f, depth / 2.0f, 1);
-	}
-	virtual glm::vec3 vertex(int iface, int nthvert) 
+
+	virtual glm::vec4 vertex(int iface, int nthvert)
 	{
 		v2f_uv[nthvert] = model->uv(iface, nthvert);
 		v2f_pos[nthvert] = model->vert(iface, nthvert);
-		glm::vec4 gl_Vertex = vec4(model->vert(iface, nthvert),1.0f); // read the vertex from .obj file
-		return ViewPort * Projection * View * gl_Vertex; // 屏幕空间坐标
+		v2f_normal[nthvert] = model->normal(iface, nthvert);
+		glm::vec4 gl_Vertex = vec4(model->vert(iface, nthvert), 1.0f); // read the vertex from .obj file
+		gl_Vertex = Projection * View * gl_Vertex;    //相机空间
+		ndc_ver[nthvert] = gl_Vertex / gl_Vertex.w;
+		ndc_ver[nthvert].z = gl_Vertex.z;
+		return ViewPort * vec4(ndc_ver[nthvert],1.0); // 屏幕空间坐标
 	}
 
-	virtual bool fragment(vec3 bar, TGAColor &color) 
+	virtual bool fragment(vec3 bar, TGAColor &color)
 	{
 		vec2 uv(0.0);
 		vec3 pos(0.0);
+		vec3 normal(0.0);
+		mat3 BTN;  //TANGENT TO MODEL
 		for (int i = 0; i < 3; i++) {
 			uv += v2f_uv[i] * bar[i];
 			pos += v2f_pos[i] * bar[i];
+			normal += v2f_normal[i] * bar[i];//根据顶点的法线计算法向量，是为了构建A矩阵
 		}
+
+		//caculateTangent(v2f_pos, v2f_uv);
+		mat3 A;
+		A[0] = v2f_pos[1] - v2f_pos[0];//向量AC;
+		A[1] = v2f_pos[2] - v2f_pos[0];
+		A[2] = normal;
+		A = transpose(A);
+		A = inverse(A);
+
+		vec3 tangent = normalize(A * vec3(v2f_uv[1].x - v2f_uv[0].x, v2f_uv[2].x - v2f_uv[0].x, 0.0)); //u的梯度
+		vec3 binTangent = normalize(A * vec3(v2f_uv[1].y - v2f_uv[0].y, v2f_uv[2].y - v2f_uv[0].y, 0.0)); //v的梯度
+		BTN[0] = tangent;
+		BTN[1] = binTangent;
+		BTN[2] = normal;
+		
+		
+
 		vec3 worldViewDir = normalize(eye - center);
-		vec3 worldNormal = normalize(vec4(model->normal(uv), 0.0f)); 
+		vec3 worldNormal = normalize(BTN * model->normal(uv));
 		vec3 worldLightDir = normalize(inverse(Projection*View) * vec4(light_dir, 0.0f));
 		vec3 worldReflect = 2.0f*worldNormal*dot(worldNormal, worldLightDir) - worldLightDir;
 		float diff = dot(worldNormal, worldLightDir);
-		float spec = pow(std::max(dot(worldReflect,worldViewDir),0.0f), model->specular(uv));
-		color = ambient + model->diffuse(uv) * diff + specColor * spec * 60.0;
-		return true;                              
+		float spec = pow(std::max(dot(worldReflect, worldViewDir), 0.0f), model->specular(uv));
+		color = ambient + model->diffuse(uv) * diff ;
+		return true;
 	}
 
 };
-
 
 void triangle(glm::vec3 vertexs[], GouraudShader shader, TGAImage& image, TGAImage& zBuffer)
 {
@@ -285,12 +328,14 @@ void triangle(glm::vec3 vertexs[], GouraudShader shader, TGAImage& image, TGAIma
 
 
 
+
 int main(int argc, char** argv) {
 	GouraudShader shader;
-
-	shader.lookAt(vec3(1, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
-	shader.projection(5);
-	shader.viewPort(width, height, depth);
+	vec3 eye(1, 1, 3);
+	vec3 target(0, 0, 0);
+	shader.lookAt(eye, target, vec3(0, 1, 0));
+	shader.projection(distance(eye,target));
+	shader.viewPort(width/2, height/2, depth);
     TGAImage image(width, height, TGAImage::RGB);
 	TGAImage zBuffer(width, height, TGAImage::GRAYSCALE);  //深度图
 
@@ -298,15 +343,15 @@ int main(int argc, char** argv) {
     model = new Model("../obj/african_head/african_head.obj");
 	for (int iFace = 0; iFace < model->nfaces(); iFace++)
 	{
-		vec3 screenCoords[3];
+		vec3 screenPos[3];
 		for (int j = 0; j < 3; j++)
 		{
-			screenCoords[j] = shader.vertex(iFace, j);
+			screenPos[j] = shader.vertex(iFace, j);
 		}
 		
-		triangle(screenCoords, shader, image, zBuffer);
+		triangle(screenPos, shader, image, zBuffer);
 	}
-    image.write_tga_file("../output/african_head7.tga"); 
+    image.write_tga_file(OutputPath); 
 	zBuffer.write_tga_file("../output/african_head_per2_depth.tga");
     delete model;
 	delete[] zbuffer ;
