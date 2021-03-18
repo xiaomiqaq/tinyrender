@@ -21,7 +21,8 @@ private:
 	std::vector<int> facet_vrt_;
 	std::vector<int> facet_tex_;  // indices in the above arrays per triangle
 	std::vector<int> facet_nrm_;
-	TGAImage diffusemap_;         // diffuse color texture
+	TGAImage diffusemap_;         // diffuse color 
+
 	TGAImage normalmap_;          // normal map texture
 	TGAImage specularmap_;        // specular map texture
 	void load_texture(const std::string filename, const std::string suffix, TGAImage &img);

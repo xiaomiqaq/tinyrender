@@ -1,12 +1,12 @@
+#pragma once
 
-#ifndef __IMAGE_H__
-#define __IMAGE_H__
 
 #include <cstdint>
 #include <fstream>
 #include <vector>
 #include <algorithm>
 #include <string>
+#include "FrameBuffer.h"
 #pragma pack(push,1)
 struct TGA_Header {
     std::uint8_t  idlength{};
@@ -24,34 +24,6 @@ struct TGA_Header {
 };
 #pragma pack(pop)
 
-struct TGAColor {
-    std::uint8_t bgra[4] = {0,0,0,0};
-    std::uint8_t bytespp = {0};
-
-    TGAColor() = default;
-    TGAColor(const std::uint8_t R, const std::uint8_t G, const std::uint8_t B, const std::uint8_t A=255) : bgra{B,G,R,A}, bytespp(4) { }
-    TGAColor(const std::uint8_t v) : bgra{v,0,0,0}, bytespp(1) { }
-
-    TGAColor(const std::uint8_t *p, const std::uint8_t bpp) : bgra{0,0,0,0}, bytespp(bpp) {
-        for (int i=0; i<bpp; i++)
-            bgra[i] = p[i];
-    }
-
-    std::uint8_t& operator[](const int i) { return bgra[i]; }
-
-    TGAColor operator *(const double intensity) const {
-        TGAColor res = *this;
-        double clamped = std::max(0., std::min(intensity, 1.));
-        for (int i=0; i<4; i++) res.bgra[i] = bgra[i]*clamped;
-        return res;
-    }
-	TGAColor operator +(const TGAColor& c2)
-	{
-		TGAColor res(0, 0, 0, 0);
-		for (int i = 0; i < 4; i++) res.bgra[i] = std::min(this->bgra[i] + c2.bgra[i], 255);
-		return res;
-	}
-};
 
 class TGAImage {
 protected:
@@ -80,6 +52,4 @@ public:
     std::uint8_t *buffer();
     void clear();
 };
-
-#endif //__IMAGE_H__
 
