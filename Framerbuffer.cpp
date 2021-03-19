@@ -1,4 +1,7 @@
 #include "FrameBuffer.h"
+#include<float.h>
+
+
 
 Framebuffer::Framebuffer(int width, int height)
 {
@@ -7,7 +10,7 @@ Framebuffer::Framebuffer(int width, int height)
 	color_buffer = new uint8_t[width*height*4];
 	depth_buffer = new float[width*height];
 	this->ClearColorbuffer(TGAColor(255, 255, 255, 255));
-	this->ClearDepthbuffer(-100.0f);
+	this->ClearDepthbuffer(FLT_MAX);
 }
 void Framebuffer::ClearColorbuffer(TGAColor color)
 {

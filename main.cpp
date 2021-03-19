@@ -1,6 +1,6 @@
 #include <vector>
 #include <algorithm>
-
+#include "glm/gtc/type_ptr.hpp"
 #include"Camera.h"
 #include "glm/glm.hpp"
 #include "glm/mat4x4.hpp"
@@ -62,12 +62,8 @@ void triangle(vec3 vertexs[], IShader* shader, Framebuffer& frame)
 	for (int i = 0; i < 3; i++)
 	{
 		for (int j = 0; j < 2; j++)
-		{/*
-			bboxmin[j] = (std::max)(0, (int)(std::min)(bboxmin[j], vertexs[i][j]));
-			bboxmax[j] = (std::min)((int)screenBorder[j], (int)(std::max)(bboxmax[j], vertexs[i][j]));*/
-
+		{
 			bboxmin[j] = (int)(std::max)(0.0f, (std::min)(bboxmin[j], vertexs[i][j]));
-
 			bboxmax[j] =  (int)(std::min)(screenBorder[j],(std::max)(bboxmax[j], vertexs[i][j]) );
 		}
 	}
@@ -84,7 +80,7 @@ void triangle(vec3 vertexs[], IShader* shader, Framebuffer& frame)
 			{
 				curSV.z += vertexs[i].z * bc_p[i];  //计算深度值
 			}
-			if (curSV.z > frame.getDepth(curSV.x,curSV.y) )   //z值大的靠近相机，故显示
+			if (curSV.z < frame.getDepth(curSV.x,curSV.y) )   //z值小的靠近相机，故显示
 			{
 				TGAColor color = TGAColor(0,0,0,0);
 				bool isDraw = shader->fragment(bc_p, color);
@@ -175,10 +171,6 @@ void triangle(vec3 vertexs[], IShader* shader, Framebuffer& frame)
 //
 //}
 
-
-
-
-
 HWND hwnd;
 
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -188,15 +180,15 @@ void RenderModel(Model* model,Framebuffer* frame)
 
 }
 //初始化窗口
-void initialize_wnd() noexcept
+void initialize_wnd(Framebuffer& framebuffer) noexcept
 {
 	// Create application window
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ImGui Example"), NULL };
 	::RegisterClassEx(&wc);
-	hwnd = ::CreateWindow(wc.lpszClassName, _T("Dear ImGui DirectX12 Example"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+	hwnd = ::CreateWindow(wc.lpszClassName, _T("Dear ImGui DirectX12 Example"), WS_OVERLAPPEDWINDOW, 100, 100, 800, 800, NULL, NULL, wc.hInstance, NULL);
 
 	// Initialize Direct3D
-	if (!CreateDeviceD3D(hwnd))
+	if (!CreateDeviceD3D(hwnd/*,framebuffer*/))
 	{
 		CleanupDeviceD3D();
 		::UnregisterClass(wc.lpszClassName, wc.hInstance);
@@ -244,14 +236,10 @@ bool InitTexture(ID3D11Device*  md3dDevice, ID3D11ShaderResourceView* mTexSrv ,F
 	texArrayDesc.MiscFlags = 0; // 指定需要生成mipmap
 
 	D3D11_SUBRESOURCE_DATA sd;
-	//uint32_t * pData = textureArrayMap.data();
-	//uint32_t * pData = reinterpret_cast<uint32_t(*)>(textureMap);
 	sd.pSysMem = frame.getColorbufferAddr();
 	sd.SysMemPitch = frame.getHeight() * sizeof(uint32_t);
 	sd.SysMemSlicePitch = frame.getHeight() * frame.getWidth() * sizeof(uint32_t);
 
-
-	ID3D11Texture2D* tex;
 	md3dDevice->CreateTexture2D(&texArrayDesc, &sd, &g_texture);
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -263,20 +251,52 @@ bool InitTexture(ID3D11Device*  md3dDevice, ID3D11ShaderResourceView* mTexSrv ,F
 
 	return true;
 }
+bool InitRenderTargetView(ID3D11Device*  md3dDevice, ID3D11RenderTargetView* mRTV, Framebuffer& frame)
+{
+	// 创建纹理数组
+	D3D11_TEXTURE2D_DESC texArrayDesc;
+	texArrayDesc.Width = WINDOW_WIDTH;
+	texArrayDesc.Height = WINDOW_HEIGHT;
+	texArrayDesc.MipLevels = 1;    //不生成Mipmap
+	texArrayDesc.ArraySize = 1;
+	texArrayDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	texArrayDesc.SampleDesc.Count = 1;      // 不使用多重采样
+	texArrayDesc.SampleDesc.Quality = 0;
+	texArrayDesc.Usage = D3D11_USAGE_DYNAMIC;
+	texArrayDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+	texArrayDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	texArrayDesc.MiscFlags = 0; // 指定需要生成mipmap
+
+	D3D11_SUBRESOURCE_DATA sd;
+	sd.pSysMem = frame.getColorbufferAddr();
+	sd.SysMemPitch = frame.getHeight() * sizeof(uint32_t);
+	sd.SysMemSlicePitch = frame.getHeight() * frame.getWidth() * sizeof(uint32_t);
+
+
+	md3dDevice->CreateTexture2D(&texArrayDesc, &sd, &g_texRTV);
+
+
+	md3dDevice->CreateRenderTargetView(g_texRTV, nullptr, &mRTV);
+
+	return true;
+}
 // Main code
 int main(int, char**)
 {
-	
+	Camera* camera = new Camera(1.f, 10.f, 90.f, 1.f);
+	{
+		vec3 eye(0, 0, 2);
+		vec3 target(0, 0, 0);
+		camera->LookAt2(eye, target, vec3(0.f, 1.f, 0.f));
+		camera->Perspective();
+	}
 	Framebuffer framebuffer(WINDOW_WIDTH, WINDOW_HEIGHT);
+	//InitRenderTargetView(g_pd3dDevice, g_rtv, framebuffer);
 	Model* model = new Model("../obj/african_head/african_head.obj");
-	Camera* camera = new Camera();
-	
-	vec3 eye(2, 2, 3);
-	vec3 target(0, 0, 0);
-	camera->LookAt(eye, target, vec3(0.f,1.f,0.f));
+
 	PhoneShader shader(model,camera);
 	shader.viewPort(framebuffer.getWidth(), framebuffer.getHeight(), 256);
-	initialize_wnd();
+	initialize_wnd(framebuffer);
 	init_imgui();
 	InitTexture(g_pd3dDevice, g_texsrv , framebuffer);
 
@@ -285,7 +305,6 @@ int main(int, char**)
     ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT)
 	{
-
 		if (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
 		{
 			::TranslateMessage(&msg);
@@ -302,7 +321,6 @@ int main(int, char**)
 			if (ImGui::Button("点击我"))
 			{
 				vec3 tris[3] = { vec3(0,0,0),vec3(0,100,0),vec3(100,100,0) };
-				//triangle(tris,framebuffer);
 				for (int iFace = 0; iFace < model->nfaces(); iFace++)
 				{
 
@@ -322,7 +340,6 @@ int main(int, char**)
 				g_pd3dDeviceContext->Unmap(g_texture, 0);
 			}
 			ImGui::Image(g_texsrv, ImVec2(framebuffer.getWidth(), framebuffer.getHeight()), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 2.5f));
-			//ImGui::Image(g_texsrv, ImGui::GetContentRegionAvail());
 			ImGui::End();
 
 		}

@@ -15,7 +15,6 @@ public:
 	Model* model;
 	Camera* camera;
 
-
 	glm::mat4 ViewPort = glm::mat4(1.0f);
 
 	void viewPort(int width, int height, int depth)

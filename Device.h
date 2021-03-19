@@ -13,37 +13,40 @@ static ID3D11RenderTargetView*  g_mainRenderTargetView = NULL;
 
 static ID3D11Texture2D* g_texture = NULL;
 ID3D11ShaderResourceView* g_texsrv = NULL;
-// Forward declarations of helper functions
+static ID3D11RenderTargetView*  g_rtv = NULL;
+static ID3D11Texture2D* g_texRTV = NULL;
+
 bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
 void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-bool CreateDeviceD3D(HWND hWnd)
+bool CreateDeviceD3D(HWND hWnd/*,Framebuffer& framebuffer*/)
 {
 	// Setup swap chain
-	DXGI_SWAP_CHAIN_DESC sd;
-	ZeroMemory(&sd, sizeof(sd));
-	sd.BufferCount = 2;
-	sd.BufferDesc.Width = 0;
-	sd.BufferDesc.Height = 0;
-	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	sd.BufferDesc.RefreshRate.Numerator = 60;
-	sd.BufferDesc.RefreshRate.Denominator = 1;
-	sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	sd.OutputWindow = hWnd;
-	sd.SampleDesc.Count = 1;
-	sd.SampleDesc.Quality = 0;
-	sd.Windowed = TRUE;
-	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	DXGI_SWAP_CHAIN_DESC swap_chain_desc;
+	ZeroMemory(&swap_chain_desc, sizeof(swap_chain_desc));
+	swap_chain_desc.BufferCount = 2;
+	swap_chain_desc.BufferDesc.Width = 0;
+	swap_chain_desc.BufferDesc.Height = 0;
+	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swap_chain_desc.BufferDesc.RefreshRate.Numerator = 60;
+	swap_chain_desc.BufferDesc.RefreshRate.Denominator = 1;
+	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swap_chain_desc.OutputWindow = hWnd;
+	swap_chain_desc.SampleDesc.Count = 1;
+	swap_chain_desc.SampleDesc.Quality = 0;
+	swap_chain_desc.Windowed = TRUE;
+	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
 	UINT createDeviceFlags = 0;
 	//createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 	D3D_FEATURE_LEVEL featureLevel;
 	const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
-	if (D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &featureLevel, &g_pd3dDeviceContext) != S_OK)
+	if (D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevelArray, 2, 
+				D3D11_SDK_VERSION, &swap_chain_desc, &g_pSwapChain, &g_pd3dDevice, &featureLevel, &g_pd3dDeviceContext) != S_OK)
 		return false;
 
 	CreateRenderTarget();
@@ -58,12 +61,35 @@ void CleanupDeviceD3D()
 	if (g_pd3dDevice) { g_pd3dDevice->Release(); g_pd3dDevice = NULL; }
 }
 
-void CreateRenderTarget()
+void CreateRenderTarget(/*Framebuffer& frame*/)
 {
 	ID3D11Texture2D* pBackBuffer;
 	g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
 	g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_mainRenderTargetView);
 	pBackBuffer->Release();
+
+	// 创建纹理数组
+	//D3D11_TEXTURE2D_DESC texArrayDesc;
+	//texArrayDesc.Width = WINDOW_WIDTH;
+	//texArrayDesc.Height = WINDOW_HEIGHT;
+	//texArrayDesc.MipLevels = 1;    //不生成Mipmap
+	//texArrayDesc.ArraySize = 1;
+	//texArrayDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//texArrayDesc.SampleDesc.Count = 1;      // 不使用多重采样
+	//texArrayDesc.SampleDesc.Quality = 0;
+	//texArrayDesc.Usage = D3D11_USAGE_DYNAMIC;
+	//texArrayDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+	//texArrayDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	//texArrayDesc.MiscFlags = 0; // 指定需要生成mipmap
+
+	//D3D11_SUBRESOURCE_DATA swap_chain_desc;
+	//swap_chain_desc.pSysMem = frame.getColorbufferAddr();
+	//swap_chain_desc.SysMemPitch = frame.getHeight() * sizeof(uint32_t);
+	//swap_chain_desc.SysMemSlicePitch = frame.getHeight() * frame.getWidth() * sizeof(uint32_t);
+
+	//g_pd3dDevice->CreateTexture2D(&texArrayDesc, &swap_chain_desc, &g_texRTV);
+
+	//g_pd3dDevice->CreateRenderTargetView(g_texRTV, nullptr, &g_rtv);
 }
 
 void CleanupRenderTarget()
