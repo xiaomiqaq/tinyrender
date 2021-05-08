@@ -28,8 +28,8 @@ bool CreateDeviceD3D(HWND hWnd/*,Framebuffer& framebuffer*/)
 	DXGI_SWAP_CHAIN_DESC swap_chain_desc;
 	ZeroMemory(&swap_chain_desc, sizeof(swap_chain_desc));
 	swap_chain_desc.BufferCount = 2;
-	swap_chain_desc.BufferDesc.Width = 0;
-	swap_chain_desc.BufferDesc.Height = 0;
+	swap_chain_desc.BufferDesc.Width = 800;
+	swap_chain_desc.BufferDesc.Height = 800;
 	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swap_chain_desc.BufferDesc.RefreshRate.Numerator = 60;
 	swap_chain_desc.BufferDesc.RefreshRate.Denominator = 1;
@@ -68,28 +68,6 @@ void CreateRenderTarget(/*Framebuffer& frame*/)
 	g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_mainRenderTargetView);
 	pBackBuffer->Release();
 
-	// 创建纹理数组
-	//D3D11_TEXTURE2D_DESC texArrayDesc;
-	//texArrayDesc.Width = WINDOW_WIDTH;
-	//texArrayDesc.Height = WINDOW_HEIGHT;
-	//texArrayDesc.MipLevels = 1;    //不生成Mipmap
-	//texArrayDesc.ArraySize = 1;
-	//texArrayDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	//texArrayDesc.SampleDesc.Count = 1;      // 不使用多重采样
-	//texArrayDesc.SampleDesc.Quality = 0;
-	//texArrayDesc.Usage = D3D11_USAGE_DYNAMIC;
-	//texArrayDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
-	//texArrayDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	//texArrayDesc.MiscFlags = 0; // 指定需要生成mipmap
-
-	//D3D11_SUBRESOURCE_DATA swap_chain_desc;
-	//swap_chain_desc.pSysMem = frame.getColorbufferAddr();
-	//swap_chain_desc.SysMemPitch = frame.getHeight() * sizeof(uint32_t);
-	//swap_chain_desc.SysMemSlicePitch = frame.getHeight() * frame.getWidth() * sizeof(uint32_t);
-
-	//g_pd3dDevice->CreateTexture2D(&texArrayDesc, &swap_chain_desc, &g_texRTV);
-
-	//g_pd3dDevice->CreateRenderTargetView(g_texRTV, nullptr, &g_rtv);
 }
 
 void CleanupRenderTarget()

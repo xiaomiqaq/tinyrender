@@ -29,10 +29,10 @@ bool TGAImage::read_tga_file(const std::string filename) {
         std::cerr << "bad bpp (or width/height) value\n";
         return false;
     }
-    size_t nbytes = bytespp*width*height;
-    data = std::vector<std::uint8_t>(nbytes, 0);
+    size_t nPixels = bytespp*width*height;
+    data = std::vector<std::uint8_t>(nPixels, 0);
     if (3==header.datatypecode || 2==header.datatypecode) {
-        in.read(reinterpret_cast<char *>(data.data()), nbytes);
+        in.read(reinterpret_cast<char *>(data.data()), nPixels);
         if (!in.good()) {
             in.close();
             std::cerr << "an error occured while reading the data\n";

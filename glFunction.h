@@ -7,44 +7,10 @@
 #include "glm/mat4x4.hpp"
 #include "myGL.h"
 #include "Shader.h"
-
+#include "base.h"
 using namespace glm;
 
-const int width = 800;
-const int height = 800;
-const int depth = 255;
-const TGAColor white = TGAColor(255, 255, 255, 255);
-const TGAColor red = TGAColor(255, 0, 0, 255);
-const TGAColor gray = TGAColor(0, 0, 255, 100);
-float* zbuffer = new float[width * height];
-float* shadowBuffer = new float[width * height];
 
-glm::vec3 barycentric(glm::vec3* tri_points, glm::vec3 p)
-{
-	//这是根据{u,v,1} 点乘 {ABx,ACx,PAx} =0 点乘 {ABy,ACy,PAy} = 0 得来的一步计算，相当于计算一个叉积。 计算结果除以u.z即可得到真正的{u,v,1}
-	glm::vec3 vectorX(tri_points[2].x - tri_points[0].x, tri_points[1].x - tri_points[0].x, tri_points[0].x - p.x);
-	glm::vec3 vectorY(tri_points[2].y - tri_points[0].y, tri_points[1].y - tri_points[0].y, tri_points[0].y - p.y);
-	glm::vec3 u = glm::cross(vectorX, vectorY);
-	if (std::abs(u[2]) > 1e-2)
-		return glm::fvec3(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
-	return glm::fvec3(-1, 1, 1);
-}
-glm::vec3 barycentric(glm::vec3 A, glm::vec3 B, glm::vec3 C, glm::vec3 P)
-{
-	glm::vec3 s[2];
-	for (int i = 2; i--;)
-	{
-		s[i][0] = C[i] - A[i];
-		s[i][1] = B[i] - A[i];
-		s[i][2] = A[i] - P[i];
-	}
-	glm::vec3 vectorX = glm::vec3(C.x - A.x, B.x - A.x, A.x - P.x);
-	glm::vec3 vectorY = glm::vec3(C.y - A.y, B.y - A.y, A.y - P.y);
-	glm::vec3 u = glm::cross(vectorX, vectorY);
-	if (std::abs(u[2] > 1e-2))
-		return glm::fvec3(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
-	return glm::fvec3(-1, 1, 1);
-}
 void line(glm::vec2 t0, glm::vec2 t1, TGAImage& image, TGAColor color) {
 	int x0 = t0.x, y0 = t0.y, x1 = t1.x, y1 = t1.y;
 	bool steep = false;
@@ -97,44 +63,39 @@ void triangle(glm::vec2 t0, glm::vec2 t1, glm::vec2 t2, TGAImage& image, TGAColo
 		float k1 = (float)(y - (second_half ? t1.y : t0.y)) / segment_height;
 		glm::vec2 p0 = t0 + (t2 - t0) * k0;
 		glm::vec2 p1 = second_half ? t1 + (t2 - t1) * k1 : t0 + (t1 - t0) * k1;
-		line(p0, p1, image, white);
+		line(p0, p1, image, TR::white);
 	}
 
 
-	line(t0, t1, image, white);
-	line(t1, t2, image, white);
-	line(t2, t0, image, red);
+	line(t0, t1, image, TR::white);
+	line(t1, t2, image, TR::white);
+	line(t2, t0, image, TR::red);
 }
-void triangle(glm::vec3 vertexs[], TGAImage& image, TGAColor color)
+
+
+glm::vec3 barycentric(glm::vec3* tri_points, glm::vec3 p)
 {
-	//找到包围三角形的包围盒
-	glm::vec2 bboxmin(image.get_width() - 1, image.get_height() - 1);
-	glm::vec2 bboxmax(0, 0);
-	glm::vec2 screenBorder(image.get_width() - 1, image.get_height() - 1);
-	for (int i = 0; i < 3; i++)
+	//这是根据{u,v,1} 点乘 {ABx,ACx,PAx} =0 点乘 {ABy,ACy,PAy} = 0 得来的一步计算，相当于计算一个叉积。 计算结果除以u.z即可得到真正的{u,v,1}
+	glm::vec3 vectorX(tri_points[2].x - tri_points[0].x, tri_points[1].x - tri_points[0].x, tri_points[0].x - p.x);
+	glm::vec3 vectorY(tri_points[2].y - tri_points[0].y, tri_points[1].y - tri_points[0].y, tri_points[0].y - p.y);
+	glm::vec3 u = glm::cross(vectorX, vectorY);
+	if (std::abs(u[2]) > 1e-2)
+		return glm::fvec3(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+	return glm::fvec3(-1, 1, 1);
+}
+glm::vec3 barycentric(glm::vec3 A, glm::vec3 B, glm::vec3 C, glm::vec3 P)
+{
+	glm::vec3 s[2];
+	for (int i = 2; i--;)
 	{
-		for (int j = 0; j < 2; j++)
-		{
-			bboxmin[j] = std::max(0, (int)std::min(bboxmin[j], vertexs[i][j]));
-			bboxmax[j] = std::min((int)screenBorder[j], (int)std::max(bboxmax[j], vertexs[i][j]));
-		}
+		s[i][0] = C[i] - A[i];
+		s[i][1] = B[i] - A[i];
+		s[i][2] = A[i] - P[i];
 	}
-	//遍历包围盒中的点
-	glm::vec3 p;
-	for (p.x = bboxmin.x; p.x <= bboxmax.x; p.x++)
-	{
-		for (p.y = bboxmin.y; p.y <= bboxmax.y; p.y++)
-		{
-			//glm::vec3 bc_p = barycentric(vertexs[0], vertexs[1], vertexs[2], pv);
-			glm::vec3 bc_screen = barycentric(vertexs, p);
-			if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0) continue;
-			p.z = 0;
-			for (int i = 0; i < 3; i++) p.z += vertexs[i].z * bc_screen[i];  //计算深度值,用
-			if (zbuffer[int(p.x + p.y * width)] < p.z)
-			{
-				zbuffer[int(p.x + p.y * width)] = p.z;
-				image.set(p.x, p.y, color);
-			}
-		}
-	}
+	glm::vec3 vectorX = glm::vec3(C.x - A.x, B.x - A.x, A.x - P.x);
+	glm::vec3 vectorY = glm::vec3(C.y - A.y, B.y - A.y, A.y - P.y);
+	glm::vec3 u = glm::cross(vectorX, vectorY);
+	if (std::abs(u[2] > 1e-2))
+		return glm::fvec3(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+	return glm::fvec3(-1, 1, 1);
 }
