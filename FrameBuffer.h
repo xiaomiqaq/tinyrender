@@ -4,8 +4,7 @@
 
 typedef unsigned char uchar;
 
-const int WINDOW_WIDTH = 960;
-const int WINDOW_HEIGHT = 720;
+
 //Color ColorRGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 //{
 //	return Color(r, g, b, a);

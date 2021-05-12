@@ -232,7 +232,7 @@ static image_t *load_tga_image(const char *filename) {
 	int is_rle, flip_h, flip_v;
 	image_t *image;
 	FILE *file;
-	file = fopen(filename, "rb");
+	file = fopen(FileUtil::get_absolute_path(filename).c_str(), "rb");
 	assert(file != NULL);
 	read_tga_header(file, &width, &height, &channels,
 		&is_rle, &flip_h, &flip_v);

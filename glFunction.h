@@ -6,8 +6,8 @@
 #include "glm/glm.hpp"
 #include "glm/mat4x4.hpp"
 #include "myGL.h"
-#include "Shader.h"
-#include "base.h"
+#include "M_Shader.h"
+
 using namespace glm;
 
 
@@ -99,3 +99,43 @@ glm::vec3 barycentric(glm::vec3 A, glm::vec3 B, glm::vec3 C, glm::vec3 P)
 		return glm::fvec3(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
 	return glm::fvec3(-1, 1, 1);
 }
+
+/* 光栅化三角形 */
+//void triangle(vec3 vertexs[], IShader* shader, Framebuffer& frame)
+//{
+//	TR::tri_num++;
+//	//找到包围三角形的包围盒
+//	glm::vec2 bboxmin(frame.getWidth()-1 , frame.getHeight() - 1);
+//	glm::vec2 bboxmax(0, 0);
+//	glm::vec2 screenBorder(frame.getWidth() - 1, frame.getHeight() - 1);
+//	for (int i = 0; i < 3; i++)
+//	{
+//		for (int j = 0; j < 2; j++)
+//		{
+//			bboxmin[j] = (int)(std::max)(0.0f, (std::min)(bboxmin[j], vertexs[i][j]));
+//			bboxmax[j] =  (int)(std::min)(screenBorder[j],(std::max)(bboxmax[j], vertexs[i][j]) );
+//		}
+//	}
+//	//遍历包围盒中的点
+//	glm::vec3 curSV;
+//	for (curSV.x = bboxmin.x; curSV.x <= bboxmax.x; curSV.x++)
+//	{
+//		for (curSV.y = bboxmin.y; curSV.y <= bboxmax.y; curSV.y++)
+//		{
+//			glm::vec3 bc_p = barycentric(vertexs, curSV);  //curSV的重心坐标
+//			if (bc_p.x < 0 || bc_p.y < 0 || bc_p.z < 0) continue;
+//			curSV.z = 0;
+//			for (int i = 0; i < 3; i++)
+//			{
+//				curSV.z += vertexs[i].z * bc_p[i];  //计算深度值
+//			}
+//			if (curSV.z < frame.getDepth(curSV.x,curSV.y) )   //z值小的靠近相机，故显示
+//			{
+//				TGAColor color = TGAColor(0,0,0,0);
+//				bool isDraw = shader->fragment(bc_p, color);
+//				frame.setDepth(curSV.x, curSV.y, curSV.z);
+//				frame.setColor(curSV.x, curSV.y, color);
+//			}
+//		}
+//	}
+//}

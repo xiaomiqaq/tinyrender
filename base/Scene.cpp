@@ -1,11 +1,9 @@
 #pragma once
 #include "Scene.h"
-#include "Cache.h"
 
-
-scene_t *scene_from_file(const char *filename, mat4_t root) {
+Scene *Scene::scene_from_file(const char *filename, mat4_t root) {
 	char scene_type[LINE_SIZE];
-	scene_t *scene;
+	Scene *scene = new Scene();
 	FILE *file;
 	int items;
 	file = fopen(filename, "rb");
@@ -26,7 +24,7 @@ scene_t *scene_from_file(const char *filename, mat4_t root) {
 	return scene;
 };
 
-static scene_light_t read_light(FILE *file) {
+scene_light_t Scene::read_light(FILE *file) {
 	scene_light_t light;
 	char header[LINE_SIZE];
 	int items;
@@ -53,7 +51,7 @@ static scene_light_t read_light(FILE *file) {
 	return light;
 };
 
-static std::vector<scene_material_t> read_blinn_materials(FILE *file) {
+std::vector<scene_material_t> Scene::read_blinn_materials(FILE *file) {
 	std::vector<scene_material_t> materials ;
 	int num_materials;
 	int items;
@@ -70,7 +68,7 @@ static std::vector<scene_material_t> read_blinn_materials(FILE *file) {
 	return materials;
 }
 
-static scene_material_t read_blinn_material(FILE *file) {
+scene_material_t Scene::read_blinn_material(FILE *file) {
 	scene_material_t material;
 	int items;
 
@@ -101,7 +99,7 @@ static scene_material_t read_blinn_material(FILE *file) {
 	return material;
 }
 
-static std::vector<scene_transform_t> read_transforms(FILE *file) {
+std::vector<scene_transform_t> Scene::read_transforms(FILE *file) {
 	std::vector<scene_transform_t> transforms ;
 	int num_transforms;
 	int items;
@@ -118,7 +116,7 @@ static std::vector<scene_transform_t> read_transforms(FILE *file) {
 	return transforms;
 };
 
-static scene_transform_t read_transform(FILE *file) {
+scene_transform_t Scene::read_transform(FILE *file) {
 	scene_transform_t transform;
 	int items;
 	int i;
@@ -138,7 +136,7 @@ static scene_transform_t read_transform(FILE *file) {
 	return transform;
 };
 
-static std::vector<scene_model_t> read_models(FILE *file) {
+std::vector<scene_model_t> Scene::read_models(FILE *file) {
 	std::vector<scene_model_t> scene_models;
 	int num_models;
 	int items;
@@ -155,7 +153,7 @@ static std::vector<scene_model_t> read_models(FILE *file) {
 	return scene_models;
 };
 
-static scene_model_t read_model(FILE *file) {
+scene_model_t Scene::read_model(FILE *file) {
 	scene_model_t model;
 	int items;
 
@@ -176,11 +174,9 @@ static scene_model_t read_model(FILE *file) {
 	return model;
 };
 
-static scene_t *create_blinn_scene(scene_light_t *scene_light,
-	std::vector<scene_material_t> scene_materials,
-	std::vector<scene_transform_t> scene_transforms,
-	std::vector<scene_model_t> scene_models,
-	mat4_t root_transform) {
+Scene *Scene::create_blinn_scene(scene_light_t *scene_light,std::vector<scene_material_t> scene_materials,
+									std::vector<scene_transform_t> scene_transforms, std::vector<scene_model_t> scene_models, mat4_t root_transform) 
+{
 	int num_materials = scene_materials.size();
 	int num_transforms = scene_transforms.size();
 	int num_models = scene_models.size();
@@ -195,7 +191,7 @@ static scene_t *create_blinn_scene(scene_light_t *scene_light,
 		const char *skeleton;
 		int attached;
 		mat4_t transform;
-		material_t material;
+		blinn_material_t material;
 		model_t *model;
 
 		scene_model = scene_models[i];
@@ -223,49 +219,13 @@ static scene_t *create_blinn_scene(scene_light_t *scene_light,
 		model = blinn_create_model(mesh_str, transform, skeleton, attached,
 			&material);
 		models.push_back(model);
+
 	}
 
 	return create_scene(scene_light, models);
 }
-model_t *blinn_create_model(const char *mesh, mat4_t transform,
-	const char *skeleton, int attached,
-	material_t *material) {
-	//int sizeof_attribs = sizeof(blinn_attribs_t);
-	//int sizeof_varyings = sizeof(blinn_varyings_t);
-	//int sizeof_uniforms = sizeof(blinn_uniforms_t);
-	//blinn_uniforms_t *uniforms;
-	//program_t *program;
-	model_t *model;
 
-	//program = program_create(blinn_vertex_shader, blinn_fragment_shader,
-	//	sizeof_attribs, sizeof_varyings, sizeof_uniforms,
-	//	material->double_sided, material->enable_blend);
-
-	//uniforms = (blinn_uniforms_t*)program_get_uniforms(program);
-	//uniforms->basecolor = material->basecolor;
-	//uniforms->shininess = material->shininess;
-	//uniforms->diffuse_map = acquire_color_texture(material->diffuse_map);
-	//uniforms->specular_map = acquire_color_texture(material->specular_map);
-	//uniforms->emission_map = acquire_color_texture(material->emission_map);
-	//uniforms->alpha_cutoff = material->alpha_cutoff;
-
-	model = (model_t*)malloc(sizeof(model_t));
-	model->mesh = cache_acquire_mesh(mesh);
-	//model->program = program;
-	model->transform = transform;
-	//model->skeleton = cache_acquire_skeleton(skeleton);
-	model->attached = attached;
-	model->opaque = !material->enable_blend;
-	model->distance = 0;
-	//model->update = update_model;
-	//model->draw = draw_model;
-	//model->release = release_model;
-
-	return model;
-}
-
-
-static scene_t *create_scene(scene_light_t *light, std::vector<model_t*> models) {
+Scene *Scene::create_scene(scene_light_t *light, std::vector<model_t*> models) {
 	model_t *skybox;
 	int shadow_width;
 	int shadow_height;
@@ -312,19 +272,19 @@ static scene_t *create_scene(scene_light_t *light, std::vector<model_t*> models)
 		light->ambient, light->punctual,
 		shadow_width, shadow_height);
 }
-scene_t *scene_create(vec3_t background, model_t *skybox, std::vector<model_t*> m_models,
+
+Scene *Scene::scene_create(vec3_t background, model_t *skybox, std::vector<model_t*> models,
 	float ambient_intensity, float punctual_intensity,
 	int shadow_width, int shadow_height) 
 {
-	scene_t *scene = (scene_t*)malloc(sizeof(scene_t));
+	Scene *scene = new Scene() ;
 	scene->background = vec4_from_vec3(background, 1);
 	scene->skybox = skybox;
-	scene->models =m_models;
+	scene->m_models = models;
+	scene->m_models.push_back(models[0]);
+
 	//scene->models.assign(models.begin(), models.end()-1);
-	std::vector<model_t*> v2;
-		v2= m_models;
-	scene->models[0] = m_models[0];
-	scene->models.swap(m_models);
+	//scene->models.swap(m_models);
 	scene->ambient_intensity = ambient_intensity;
 	scene->punctual_intensity = punctual_intensity;
 	if (shadow_width > 0 && shadow_height > 0) {
@@ -338,18 +298,20 @@ scene_t *scene_create(vec3_t background, model_t *skybox, std::vector<model_t*> 
 	return scene;
 }
 
-void scene_release(scene_t *scene) {
-	int num_models = scene->models.size();
+
+
+void Scene::scene_release(Scene *scene) {
+	int num_models = scene->m_models.size();
 	int i;
 	if (scene->skybox) {
 		model_t *skybox = scene->skybox;
 		skybox->release(skybox);
 	}
 	for (i = 0; i < num_models; i++) {
-		model_t *model = scene->models[i];
+		model_t *model = scene->m_models[i];
 		model->release(model);
 	}
-	scene->models.clear();
+	scene->m_models.clear();
 	//
 	/*if (scene->shadow_buffer) {
 		framebuffer_release(scene->shadow_buffer);
@@ -358,4 +320,6 @@ void scene_release(scene_t *scene) {
 		texture_release(scene->shadow_map);
 	}*/
 	free(scene);
-}
+};
+
+

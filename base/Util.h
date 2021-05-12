@@ -1,5 +1,4 @@
-#ifndef UTIL_H
-#define UTIL_H
+#pragma once
 #include<string>
 #include"../macro.h"
 
@@ -65,4 +64,3 @@ public:
 	}
 
 };
-#endif

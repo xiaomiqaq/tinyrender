@@ -1,6 +1,7 @@
 #pragma once
 #include"../pch.h"
 #include"graphics.h"
+#include "framebuffer.h"
 
 typedef struct {
 	int width, height;
