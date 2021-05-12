@@ -53,9 +53,9 @@ void Program::program_release(Program *program) {
 
 void *Program::program_get_attribs(int nth_vertex) {
 	assert(nth_vertex >= 0 && nth_vertex < 3);
-	return program->shader_attribs[nth_vertex];
+	return shader_attribs[nth_vertex];
 }
 
 void *Program::program_get_uniforms() {
-	return program->shader_uniforms;
+	return shader_uniforms;
 }

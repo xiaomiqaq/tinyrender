@@ -15,7 +15,7 @@ void draw_model(model_t *model, framebuffer_t *framebuffer, int shadow_pass)
 		for (j = 0; j < 3; j++) {
 			vertex_t vertex = vertices[i * 3 + j];
 			//将Mesh的vertics传给program
-			attribs = (blinn_attribs_t*)Program::program_get_attribs(program, j);
+			attribs = (blinn_attribs_t*)program->program_get_attribs(j);
 			attribs->position = vertex.position;
 			attribs->texcoord = vertex.texcoord;
 			attribs->normal = vertex.normal;
@@ -39,7 +39,7 @@ model_t *blinn_create_model(const char *mesh, mat4_t transform,
 		sizeof_attribs, sizeof_varyings, sizeof_uniforms,
 		material->double_sided, material->enable_blend);
 
-	uniforms = (blinn_uniforms_t*)Program::program_get_uniforms(program);
+	uniforms = (blinn_uniforms_t*)program->program_get_uniforms();
 	uniforms->basecolor = material->basecolor;
 	uniforms->shininess = material->shininess;
 	uniforms->diffuse_map = acquire_color_texture(material->diffuse_map);
@@ -120,7 +120,7 @@ static void update_model(model_t *model, perframe_t *perframe) {
 	}
 	normal_matrix = mat3_inverse_transpose(mat3_from_mat4(model_matrix));
 
-	uniforms = (blinn_uniforms_t*)program_get_uniforms(model->program);
+	uniforms = (blinn_uniforms_t*)model->program->program_get_uniforms();
 	uniforms->light_dir = perframe->light_dir;
 	uniforms->camera_pos = perframe->camera_pos;
 	uniforms->model_matrix = model_matrix;

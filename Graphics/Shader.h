@@ -44,9 +44,9 @@ typedef struct {
 
 
 static mat4_t get_model_matrix(blinn_attribs_t *attribs, blinn_uniforms_t *uniforms);
-
 static mat3_t get_normal_matrix(blinn_attribs_t *attribs,blinn_uniforms_t *uniforms);
 static material_t get_material(blinn_varyings_t *varyings, blinn_uniforms_t *uniforms, int backface);
+
 static vec3_t get_view_dir(blinn_varyings_t *varyings,blinn_uniforms_t *uniforms);
 static int is_in_shadow(blinn_varyings_t *varyings,blinn_uniforms_t *uniforms,float n_dot_l);
 static int is_zero_vector(vec3_t v);
