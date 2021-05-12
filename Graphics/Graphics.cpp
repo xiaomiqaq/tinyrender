@@ -166,20 +166,15 @@ int is_inside_plane(vec4_t coord, plane_t plane) {
 		dst[i] = sum * normalizer;
 	}
 }
- void draw_fragment(framebuffer_t *framebuffer, program_t *program,
-	int backface, int index, float depth) {
+ void draw_fragment(framebuffer_t *framebuffer, Program *program,int backface, int index, float depth) 
+ {
 	vec4_t color;
 	int discard;
 
 	/* execute fragment shader */
 	discard = 0;
-	color = program->fragment_shader(program->shader_varyings,
-		program->shader_uniforms,
-		&discard,
-		backface);
-	if (discard) {
-		return;
-	}
+	color = program->fragment_shader(program->shader_varyings , program->shader_uniforms , &discard, backface);
+	if (discard) return;
 	color = vec4_saturate(color);
 
 	/* perform blending */
@@ -227,8 +222,7 @@ int is_inside_plane(vec4_t coord, plane_t plane) {
 		return num_vertices;
 	}
 }
- int rasterize_triangle(framebuffer_t *framebuffer, program_t *program,
-	vec4_t clip_coords[3], void *varyings[3]) 
+ int rasterize_triangle(framebuffer_t *framebuffer, Program *program, vec4_t clip_coords[3], void *varyings[3]) 
  {
 	int width = framebuffer->width;
 	int height = framebuffer->height;
@@ -288,7 +282,7 @@ int is_inside_plane(vec4_t coord, plane_t plane) {
 	return 0;
 }
 
- void graphics_draw_triangle(framebuffer_t *framebuffer, program_t *program) 
+ void graphics_draw_triangle(framebuffer_t *framebuffer, Program *program) 
  {
 	 int num_vertices;
 	 int i;

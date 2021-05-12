@@ -1,16 +1,15 @@
 #include "Program.h"
 
-program_t *program_create(
-	vertex_shader_t *vertex_shader, fragment_shader_t *fragment_shader,
-	int sizeof_attribs, int sizeof_varyings, int sizeof_uniforms,
-	int double_sided, int enable_blend) {
-	program_t *program;
+Program *Program::program_create(vertex_shader_t *vertex_shader, fragment_shader_t *fragment_shader,
+						int sizeof_attribs, int sizeof_varyings, int sizeof_uniforms,int double_sided, int enable_blend) 
+{
+	Program *program;
 	int i;
 
 	assert(sizeof_attribs > 0 && sizeof_varyings > 0 && sizeof_uniforms > 0);
 	assert(sizeof_varyings % sizeof(float) == 0);
 
-	program = (program_t*)malloc(sizeof(program_t));
+	program = new Program();
 
 	program->vertex_shader = vertex_shader;
 	program->fragment_shader = fragment_shader;
@@ -38,7 +37,7 @@ program_t *program_create(
 	return program;
 }
 
-void program_release(program_t *program) {
+void Program::program_release(Program *program) {
 	int i;
 	for (i = 0; i < 3; i++) {
 		free(program->shader_attribs[i]);
@@ -52,11 +51,11 @@ void program_release(program_t *program) {
 	free(program);
 }
 
-void *program_get_attribs(program_t *program, int nth_vertex) {
+void *Program::program_get_attribs(int nth_vertex) {
 	assert(nth_vertex >= 0 && nth_vertex < 3);
 	return program->shader_attribs[nth_vertex];
 }
 
-void *program_get_uniforms(program_t *program) {
+void *Program::program_get_uniforms() {
 	return program->shader_uniforms;
 }

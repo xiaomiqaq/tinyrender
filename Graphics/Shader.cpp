@@ -1,7 +1,6 @@
 #include "Shader.h"
 
- mat4_t get_model_matrix(blinn_attribs_t *attribs,
-	blinn_uniforms_t *uniforms) {
+mat4_t get_model_matrix(blinn_attribs_t *attribs,blinn_uniforms_t *uniforms) {
 	if (uniforms->joint_matrices) {
 		mat4_t joint_matrices[4];
 		mat4_t skin_matrix;
@@ -18,9 +17,7 @@
 		return uniforms->model_matrix;
 	}
 }
-
- mat3_t get_normal_matrix(blinn_attribs_t *attribs,
-	blinn_uniforms_t *uniforms) {
+mat3_t get_normal_matrix(blinn_attribs_t *attribs,blinn_uniforms_t *uniforms) {
 	if (uniforms->joint_n_matrices) {
 		mat3_t joint_n_matrices[4];
 		mat3_t skin_n_matrix;
@@ -37,7 +34,7 @@
 		return uniforms->normal_matrix;
 	}
 }
- material_t get_material(blinn_varyings_t *varyings, blinn_uniforms_t *uniforms, int backface)
+material_t get_material(blinn_varyings_t *varyings, blinn_uniforms_t *uniforms, int backface)
 {
 	vec2_t texcoord = varyings->texcoord;
 	vec3_t diffuse, specular, normal, emission;
@@ -78,14 +75,13 @@
 	material.emission = emission;
 	return material;
 }
- vec3_t get_view_dir(blinn_varyings_t *varyings,
-	blinn_uniforms_t *uniforms) {
+vec3_t get_view_dir(blinn_varyings_t *varyings,blinn_uniforms_t *uniforms) {
 	vec3_t camera_pos = uniforms->camera_pos;
 	vec3_t world_pos = varyings->world_position;
 	return vec3_normalize(vec3_sub(camera_pos, world_pos));
 }
 
- int is_in_shadow(blinn_varyings_t *varyings, blinn_uniforms_t *uniforms, float n_dot_l) 
+int is_in_shadow(blinn_varyings_t *varyings, blinn_uniforms_t *uniforms, float n_dot_l) 
  {
 	 return 0;
 	if (uniforms->shadow_map) {
@@ -104,13 +100,10 @@
 		return 0;
 	}
 }
-
- int is_zero_vector(vec3_t v) {
+int is_zero_vector(vec3_t v) {
 	return v.x == 0 && v.y == 0 && v.z == 0;
 }
-
- vec3_t get_specular(vec3_t light_dir, vec3_t view_dir,
-	material_t material) {
+vec3_t get_specular(vec3_t light_dir, vec3_t view_dir,material_t material) {
 	if (!is_zero_vector(material.specular)) {
 		vec3_t half_dir = vec3_normalize(vec3_add(light_dir, view_dir));
 		float n_dot_h = vec3_dot(material.normal, half_dir);
@@ -143,10 +136,8 @@ vec4_t common_vertex_shader(blinn_attribs_t *attribs, blinn_varyings_t *varyings
 	varyings->normal = vec3_normalize(world_normal);
 	return clip_position;
 }
- vec4_t common_fragment_shader(blinn_varyings_t *varyings,
-	blinn_uniforms_t *uniforms,
-	int *discard,
-	int backface) {
+vec4_t common_fragment_shader(blinn_varyings_t *varyings, blinn_uniforms_t *uniforms, int *discard, int backface) 
+ {
 	material_t material = get_material(varyings, uniforms, backface);
 	if (uniforms->alpha_cutoff > 0 && material.alpha < uniforms->alpha_cutoff) {
 		*discard = 1;
@@ -190,9 +181,7 @@ vec4_t blinn_vertex_shader(void *attribs_, void *varyings_, void *uniforms_) {
 	}*/
 	return common_vertex_shader(attribs, varyings, uniforms);
 }
-
-vec4_t blinn_fragment_shader(void *varyings_, void *uniforms_,
-	int *discard, int backface) {
+vec4_t blinn_fragment_shader(void *varyings_, void *uniforms_,int *discard, int backface) {
 	blinn_varyings_t *varyings = (blinn_varyings_t*)varyings_;
 	blinn_uniforms_t *uniforms = (blinn_uniforms_t*)uniforms_;
 
@@ -205,6 +194,6 @@ vec4_t blinn_fragment_shader(void *varyings_, void *uniforms_,
 	return common_fragment_shader(varyings, uniforms, discard, backface);
 }
 
- texture_t *acquire_color_texture(const char *filename) {
+texture_t *acquire_color_texture(const char *filename) {
 	return cache_acquire_texture(filename, USAGE_LDR_COLOR);
 };

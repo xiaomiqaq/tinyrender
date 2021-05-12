@@ -53,10 +53,10 @@ static float interpolate_depth(float screen_depths[3], vec3_t weights);
 static void interpolate_varyings(
 	void *src_varyings[3], void *dst_varyings,
 	int sizeof_varyings, vec3_t weights, float recip_w[3]);
-static void draw_fragment(framebuffer_t *framebuffer, program_t *program,
+static void draw_fragment(framebuffer_t *framebuffer, Program *program,
 	int backface, int index, float depth);
 int clip_triangle(int sizeof_varyings,vec4_t in_coords[MAX_VARYINGS], void *in_varyings[MAX_VARYINGS],
 									vec4_t out_coords[MAX_VARYINGS], void *out_varyings[MAX_VARYINGS]);
-int rasterize_triangle(framebuffer_t *framebuffer, program_t *program,
+int rasterize_triangle(framebuffer_t *framebuffer, Program *program,
 	vec4_t clip_coords[3], void *varyings[3]);
-void graphics_draw_triangle(framebuffer_t *framebuffer, program_t *program);
+void graphics_draw_triangle(framebuffer_t *framebuffer, Program *program);

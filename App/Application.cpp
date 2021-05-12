@@ -233,6 +233,7 @@ void test_enter_mainloop(tickfunc_t *tickfunc/*, void *userdata, framebuffer_t *
 			::DispatchMessage(&msg);
 			continue;
 		}
+		context.light_dir = get_light_dir();
 		tickfunc(&context, m_scene);
 		// Start the Dear ImGui frame
 		ImGui_ImplDX11_NewFrame();

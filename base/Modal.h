@@ -7,7 +7,7 @@
 
 typedef struct model {
 	mesh_t *mesh;
-	program_t *program;
+	Program *program;
 	mat4_t transform;
 	/* for animation */
 	//skeleton_t *skeleton;
