@@ -13,36 +13,34 @@
 using namespace glm;
 using namespace std;
 static string PROJECT_DIECTORY = "E:/VS2017/MyTinyRender/tinyrender/";
-Camera* camera = new Camera(vec3(0.f,0.f,2.f), 1.f, 10.f, 70.f, (float)WINDOW_WIDTH/WINDOW_HEIGHT , glm::vec3(0.f,1.f,0.f));
-
 namespace TR {
 	int tri_num = 0;
 
-	void RenderUI() 
-	{
-		ImGui::Begin("Inspecter");
-		ImGui::Text("mouse down: %s", INPUT_STATE.mouseDown ? "TRUE" : "FALSE");
-		ImGui::Text("Face number: %d", TR::tri_num);
-		ImGui::Text("Camera");
-		ImGui::DragFloat3("Position", (float*)&camera->pos,1.f,-800.f,800.f,"%.2f",1.f);
-		ImGui::DragFloat("fov", &camera->fov, 1.0f, 10.f, 120.f, "%f", 1.f);
-		ImGui::Text("average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		//ImGui::Text("fps: %f", fps());
-		ImGui::End();
-	}
+	//void RenderUI() 
+	//{
+	//	ImGui::Begin("Inspecter");
+	//	ImGui::Text("mouse down: %s", INPUT_STATE.mouseDown ? "TRUE" : "FALSE");
+	//	ImGui::Text("Face number: %d", TR::tri_num);
+	//	ImGui::Text("Camera");
+	//	ImGui::DragFloat3("Position", (float*)&camera->pos,1.f,-800.f,800.f,"%.2f",1.f);
+	//	ImGui::DragFloat("fov", &camera->fov, 1.0f, 10.f, 120.f, "%f", 1.f);
+	//	ImGui::Text("average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	//	//ImGui::Text("fps: %f", fps());
+	//	ImGui::End();
+	//}
 }
 
 
 
-void UpdateInputState()
-{
-	ImGuiIO& io = ImGui::GetIO();
-
-	INPUT_STATE.mouse_delt.x = io.MouseDelta.x;
-	INPUT_STATE.mouse_delt.y = io.MouseDelta.y;
-	INPUT_STATE.mouseDown = ImGui::IsMouseDown(1);
-
-}
+//void UpdateInputState()
+//{
+//	ImGuiIO& io = ImGui::GetIO();
+//
+//	INPUT_STATE.mouse_delt.x = io.MouseDelta.x;
+//	INPUT_STATE.mouse_delt.y = io.MouseDelta.y;
+//	INPUT_STATE.mouseDown = ImGui::IsMouseDown(1);
+//
+//}
 
 
 

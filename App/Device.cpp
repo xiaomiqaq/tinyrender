@@ -145,7 +145,7 @@
 //	g_pd3dDevice->CreateShaderResourceView(output_texture, &srvDesc, &output_source_view);
 //	return true;
 //}
-//void render_d3d(ID3D11DeviceContext*     g_pd3dDeviceContext)
+//void render_d3d_imgui(ID3D11DeviceContext*     g_pd3dDeviceContext)
 //{
 //	ImGui::Render();
 //	const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
@@ -302,7 +302,7 @@
 ////
 ////	return true;
 ////}
-////void render_d3d()
+////void render_d3d_imgui()
 ////{
 ////	ImGui::Render();
 ////	const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };

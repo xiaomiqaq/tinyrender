@@ -15,17 +15,17 @@ static mat4_t get_light_proj_matrix(float half_w, float half_h,
 perframe_t build_perframe(Scene *scene, context_t *context)
 {
 	vec3_t light_dir = vec3_normalize(context->light_dir);
-	camera_t *camera = context->camera;
+	Camera *camera = context->camera;
 	perframe_t perframe;
 
 	perframe.frame_time = context->frame_time;
 	perframe.delta_time = context->delta_time;
 	perframe.light_dir = light_dir;
-	perframe.camera_pos = camera_get_position(camera);
+	perframe.camera_pos = camera->camera_get_position();
 	perframe.light_view_matrix = get_light_view_matrix(light_dir);
 	perframe.light_proj_matrix = get_light_proj_matrix(1, 1, 0, 2);
-	perframe.camera_view_matrix = camera_get_view_matrix(camera);
-	perframe.camera_proj_matrix = camera_get_proj_matrix(camera);
+	perframe.camera_view_matrix = camera->camera_get_view_matrix();
+	perframe.camera_proj_matrix = camera->camera_get_proj_matrix();
 	perframe.ambient_intensity = scene->ambient_intensity;
 	perframe.punctual_intensity = scene->punctual_intensity;
 	//perframe.shadow_map = scene->shadow_map;

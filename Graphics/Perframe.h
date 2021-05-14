@@ -21,7 +21,7 @@ typedef struct {
 
 typedef struct {
 	framebuffer_t *framebuffer;
-	camera_t *camera;
+	Camera *camera;
 	vec3_t light_dir;
 	vec2_t click_pos;
 	int single_click;

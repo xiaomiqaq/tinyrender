@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "../UI/RenderWindow.h"
 bool create_d3d_device(HWND hWnd)
 {
 	// Setup swap chain
@@ -145,7 +146,7 @@ bool init_render_texture(framebuffer_t* frame)
 	g_pd3dDevice->CreateShaderResourceView(output_texture, &srvDesc, &output_source_view);
 	return true;
 }
-void render_d3d()
+void render_d3d_imgui()
 {
 	ImGui::Render();
 	const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
@@ -198,8 +199,7 @@ void test_enter_mainloop(tickfunc_t *tickfunc/*, void *userdata, framebuffer_t *
 {
 	init_resource();
 	init_device();
-	
-	camera_t *camera;
+	Record* record = new Record();
 	context_t context;
 	float aspect;
 	float prev_time;
@@ -208,7 +208,7 @@ void test_enter_mainloop(tickfunc_t *tickfunc/*, void *userdata, framebuffer_t *
 
 
 	aspect = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
-	camera = camera_create(CAMERA_POSITION, CAMERA_TARGET, aspect);
+	Camera *camera = Camera::camera_create(CAMERA_POSITION, CAMERA_TARGET, aspect);
 
 	/*memset(&record, 0, sizeof(record_t));
 	record.light_theta = LIGHT_THETA;
@@ -224,6 +224,7 @@ void test_enter_mainloop(tickfunc_t *tickfunc/*, void *userdata, framebuffer_t *
 	
 	MSG msg;
 	ZeroMemory(&msg, sizeof(msg));
+	M_UI* ui = new UIRenderWindow(framebuffer, g_pd3dDeviceContext);
 	while (msg.message != WM_QUIT)
 	{
 
@@ -234,25 +235,20 @@ void test_enter_mainloop(tickfunc_t *tickfunc/*, void *userdata, framebuffer_t *
 			continue;
 		}
 		context.light_dir = get_light_dir();
+		record->button_call();
+		camera->update_camera(record);
 		tickfunc(&context, m_scene);
+
 		// Start the Dear ImGui frame
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
-		ImGui::Text("average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		ImGui::Begin("RenderWindow");
-		{
 
-			D3D11_MAPPED_SUBRESOURCE subData;
-			ZeroMemory(&subData, sizeof(subData));
-			g_pd3dDeviceContext->Map(output_texture, 0, D3D11_MAP_WRITE_DISCARD, 0, &subData);
-			memcpy(subData.pData, framebuffer->color_buffer, sizeof(uint32_t) * WINDOW_WIDTH * WINDOW_HEIGHT);
-			g_pd3dDeviceContext->Unmap(output_texture, 0);
-		}
-		ImGui::Image(output_source_view, ImVec2(WINDOW_WIDTH, WINDOW_HEIGHT), ImVec2(1, 1), ImVec2(0, 0), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 2.5f));
-		ImGui::End();
-		render_d3d();
+		ui->draw();
+		render_d3d_imgui();
+
+		record->reback();
 	}
 	//framebuffer_release(framebuffer);
-	camera_release(camera);
+	Camera::camera_release(camera);
 };

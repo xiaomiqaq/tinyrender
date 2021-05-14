@@ -37,7 +37,7 @@
 ////	 void init_imgui();
 ////	 bool init_render_texture(framebuffer_t* frame);
 ////
-////	 void render_d3d();
+////	 void render_d3d_imgui();
 ////public:
 ////	 HWND hwnd;
 ////	 ID3D11Device*            g_pd3dDevice ;
@@ -68,6 +68,6 @@
 //void initialize_wnd(ID3D11DeviceContext*     g_pd3dDeviceContext);
 //void init_imgui(ID3D11DeviceContext*     g_pd3dDeviceContext);
 //bool init_render_texture(framebuffer_t* frame);
-//void render_d3d(ID3D11DeviceContext*     g_pd3dDeviceContext);
+//void render_d3d_imgui(ID3D11DeviceContext*     g_pd3dDeviceContext);
 //
 //

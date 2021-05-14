@@ -5,17 +5,15 @@
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-#include <d3d11.h>
 #include <tchar.h>
 #include <cstdint>
 #include <vector>
 #include "../base/framebuffer.h"
-
+#include "Record.h"
 typedef void tickfunc_t(context_t *context, void *userdata);
 
 // Data
-static const int WINDOW_WIDTH = 800;
-static const int WINDOW_HEIGHT = 600;
+
 static const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 static HWND hwnd;
 static ID3D11Device*            g_pd3dDevice;
@@ -50,7 +48,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void initialize_wnd();
 void init_imgui();
 bool init_render_texture(framebuffer_t* frame);
-void render_d3d();
+void render_d3d_imgui();
 
 static vec3_t get_light_dir();
 void init_device();
